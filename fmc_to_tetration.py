@@ -17,12 +17,14 @@ from fmc_rest_client.resources import *
 from tetpyclient import RestClient
 from TetPolicy2 import Environment, InventoryFilter, Cluster
 
-fmc_server_url = "https://10.150.0.10:443"
-fmc_username = "apiuser2"
-fmc_password = "C1sco12345"
+#TO DO: INSERT FMC URL AND CREDENTIALS BELOW
+fmc_server_url = "https://URL:PORT"
+fmc_username = "USER"
+fmc_password = "PWD"
 
-TET_API_ENDPOINT="https://tetration.svpod.dc-01.com:8443"
-TET_API_CREDS="/root/scripts/tetrationSecuredcKey.json"
+#TO DO: INSERT TETRATION URL AND CREDENTIALS BELOW
+TET_API_ENDPOINT="https://URL:PORT"
+TET_API_CREDS="FILEPATH/FILENAME.json"
 
 def get_fmc_rest_client():
     global fmc
@@ -44,7 +46,7 @@ Main execution routine
 
 parser = argparse.ArgumentParser(description='FMC Config to Tetration')
 parser.add_argument('-f', default=False, help='Sets the flag to run the script in demonstration mode (default is full mode)')
-parser.add_argument('-s', default='securedctet', help='Sets scope name where the filters and applications will be crated. (default securedc-tet)')
+parser.add_argument('-s', default=None, help='Sets scope name where the filters and applications will be crated. (default None)')
 
 
 args = parser.parse_args()
