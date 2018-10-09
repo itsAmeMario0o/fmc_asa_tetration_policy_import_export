@@ -15,8 +15,9 @@ except ImportError:
 from tetpyclient import RestClient
 import requests.packages.urllib3
 
-TET_API_ENDPOINT="https://tetration.svpod.dc-01.com:8443"
-TET_API_CREDS="/root/scripts/tetrationSecuredcKey.json"
+#TO DO: INSERT TETRATION URL AND API CREDENTIALS BELOW
+TET_API_ENDPOINT="https://URL:PORT"
+TET_API_CREDS="FILEPATH/FILENAME.json"
 
 """
 Main execution routine
