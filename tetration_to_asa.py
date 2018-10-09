@@ -14,11 +14,12 @@ def main():
     Main execution routine
     """
     
-    #Tetration Access Information
-    TET_API_ENDPOINT="https://tetration.svpod.dc-01.com:8443"
-    TET_API_CREDS="/root/scripts/tetrationSecuredcKey.json"
+    #TO DO: INSERT TETRATION URL AND API KEY INFO
+    TET_API_ENDPOINT="https://URL:PORT"
+    TET_API_CREDS="FILEPATH/FILENAME.json"
     
-    APP_KEY = "5b59112a497d4f638bc8a761" #OpenCart App
+    #TO DO: INSERT APPLICATION KEY BELOW
+    APP_KEY = "APPKEY"
     appIDs = [APP_KEY]
     
     #Load Tet Object Model for OpenCart App
