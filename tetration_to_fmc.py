@@ -20,8 +20,9 @@ class NetworkGroup(ObjectResource):
 
 print("Connecting to Tetration to receive configuration")
 
-TET_API_ENDPOINT="https://tetration.svpod.dc-01.com:8443"
-TET_API_CREDS="/root/scripts/tetrationSecuredcKey.json"
+#TO DO: INSERT YOUR TETRATION URL AND API KEY HERE
+TET_API_ENDPOINT="https://URL:PORT"
+TET_API_CREDS="PATH/FILENAME.json"
 
 tetEnv = Environment(TET_API_ENDPOINT,TET_API_CREDS)
 restclient = RestClient(TET_API_ENDPOINT,
@@ -37,7 +38,8 @@ if not resp:
 appIDs = []
 appNames = []
 
-APP_KEY = "5b59112a497d4f638bc8a761" #OpenCart App
+#INSERT YOUR APPLICATION KEY HERE
+APP_KEY = "APPKEY" 
 appIDs = [APP_KEY]
 
 #Collect Policies for selected Tetration Apps
@@ -46,9 +48,10 @@ tetEnv.loadPolicy(appIDs)
  
 #Connect to FMC
 
-fmc_server_url = "https://10.150.0.10:443"
-fmc_username = "apiuser2"
-fmc_password = "C1sco12345"
+#TO DO: INSERT FMC URL AND CREDENTIALS HERE
+fmc_server_url = "https://URL:PORT"
+fmc_username = "USER"
+fmc_password = "PWD"
 
 print('Connecting to FMC {} ...'.format(fmc_server_url))
 fmc = FMCRestClient(fmc_server_url, fmc_username, fmc_password)
