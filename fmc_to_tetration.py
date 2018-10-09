@@ -1,29 +1,31 @@
 #!/bin/env python3
 
+"""
+Standalone application to convert FMC Policy to Tetration Policy
+"""
+
+import argparse
 import json
 import csv
 import requests.packages.urllib3
-#from terminaltables import AsciiTable
 from pprint import pprint
 import os, sys
 from tqdm import tqdm
-#import ipaddress
 from fmc_rest_client import FMCRestClient
 from fmc_rest_client import ResourceException
 from fmc_rest_client.resources import *
 from tetpyclient import RestClient
 from TetPolicy2 import Environment, InventoryFilter, Cluster
 
-fmc_server_url = "https://128.107.66.87"
-fmc_username = "osanniko"
-fmc_password = "92937"
+fmc_server_url = "https://10.150.0.10:443"
+fmc_username = "apiuser2"
+fmc_password = "C1sco12345"
 
-TET_API_ENDPOINT="https://medusa-cpoc.cisco.com"
-TET_API_CREDS="api_credentials_jefanell.json"
+TET_API_ENDPOINT="https://tetration.svpod.dc-01.com:8443"
+TET_API_CREDS="/root/scripts/tetrationSecuredcKey.json"
 
 def get_fmc_rest_client():
     global fmc
-    #print('Connecting to FMC {}@{} ...'.format(fmc_username, fmc_server_url))
     print('Connecting to FMC ...')
     fmc = FMCRestClient(fmc_server_url, fmc_username, fmc_password)
     print('Connected Successfully')
@@ -36,46 +38,70 @@ class NetworkGroup(ObjectResource):
         self.objects = objects
         self.literals = literals
 
-def main():
-    """
-    Main execution routine
-    """
-    print('Connecting to Tetration')
-    restclient = RestClient(TET_API_ENDPOINT,
+"""
+Main execution routine
+"""
+
+parser = argparse.ArgumentParser(description='FMC Config to Tetration')
+parser.add_argument('-f', default=False, help='Sets the flag to run the script in demonstration mode (default is full mode)')
+parser.add_argument('-s', default='securedctet', help='Sets scope name where the filters and applications will be crated. (default securedc-tet)')
+
+
+args = parser.parse_args()
+
+
+#Removing "-" from the scope name
+scopeName=str(args.s).replace("-","")
+sessionId=str(args.s).split("-")[2]
+
+
+print('Connecting to Tetration')
+restclient = RestClient(TET_API_ENDPOINT,
                             credentials_file=TET_API_CREDS,
                             verify=False)
-    print('Connected Successfully')
-    requests.packages.urllib3.disable_warnings()
+print('Connected Successfully')
+requests.packages.urllib3.disable_warnings()
 
-    #Get the Default scope ID
-    resp = restclient.get('/openapi/v1/app_scopes').json()
-    default_scope_id = [x for x in resp if x['name'] == 'jefanell-lab:jefanell-mgmt-subnet'][0]['id']
+#Get the Default scope ID
+resp = restclient.get('/openapi/v1/app_scopes').json()
+default_scope_id = [x for x in resp if x['name'] == scopeName][0]['id']
     
-    fmc = get_fmc_rest_client()
+fmc = get_fmc_rest_client()
 
-    policies = fmc.list(globals()['AccessPolicy']())
+policies = fmc.list(globals()['AccessPolicy']())
+tetration_policy =  [policy  for policy in policies if policy.name=='ACME-SamplePolicy-Scenario1'][0]
 
-    rules = fmc.list(AccessRule(container=policies[1]))
-    fmc_rules = {rule.id:rule for rule in rules}
+rules = fmc.list(AccessRule(container=tetration_policy))
+fmc_rules = {rule.id:rule for rule in rules}
     
-    groups = fmc.list(NetworkGroup())
-    fmc_groups = {group.id:group for group in groups}
+groups = fmc.list(NetworkGroup())
+fmc_groups = {group.id:group for group in groups}
     
-    hosts = fmc.list(Host())
-    fmc_hosts = {host.id:host for host in hosts}
+hosts = fmc.list(Host())
+fmc_hosts = {host.id:host for host in hosts}
     
-    inventory_filters = {}
-    absolute_policies = []
-    #rule = None
+inventory_filters = {}
+absolute_policies = []
+filter_any = None
+destination_filter = None
     
-    #Creating default filter
-    post_data = {"name": "Default","query": {"type":"eq","field": "vrf_id","value": 1},'app_scope_id': default_scope_id}
+#Creating default filter
+print("Creating Default Filter: ACME_Default_Filter")
+if not args.f:
+    post_data = {"name": 'ACME_Default_Filter',
+                 "query": {"type":"contains","field": "host_name","value": sessionId},
+                 "app_scope_id": default_scope_id}
     resp = restclient.post('/openapi/v1/filters/inventories',json_body=json.dumps(post_data)).json()
+    if  type(resp) is dict and 'error' in resp.keys():
+        print('ERROR: '+resp['error'])
+        print('The Defaul Filter may already exist. Delete the filter and try again.\nRefer to instructions in the lab guide or ask lab proctor.')
+        raise SystemExit
     filter_any = resp['id']
-    
-    print("Creating Firewall Objects as Tetration Filters...")
-     
-    for rule in fmc_rules.values():
+
+print("Creating Firewall Objects as Tetration Filters...")
+
+if not args.f:
+    for rule in tqdm(fmc_rules.values()):
         rule_source_networks = rule.sourceNetworks['objects']
         rule_destination_networks = rule.destinationNetworks['objects']
         
@@ -83,11 +109,29 @@ def main():
             for network_group in rule_source_networks:
                 if network_group['id'] not in inventory_filters.keys():
                     filters = []
-                    objects = fmc_groups[network_group['id']].objects
-                    for object in objects:
-                        filters.append({"field":"ip","type":"eq","value":fmc_hosts[object['id']].value})
-                    post_data = {"name": fmc_groups[network_group['id']].name,"query": {"type":"or","filters":filters},'app_scope_id': default_scope_id}
+                    if network_group['id'] in fmc_groups.keys():
+                        objects = fmc_groups[network_group['id']].objects
+                        literals = fmc_groups[network_group['id']].literals
+                        if objects:
+                            for object in objects:
+                                filters.append({"field":"ip","type":"eq","value":fmc_hosts[object['id']].value})
+                        if literals:
+                            for literal in literals:
+                                filters.append({"field":"ip","type":"eq","value":literal['value']})
+                        post_data = {"name": fmc_groups[network_group['id']].name,
+                                     "query": {"type":"or","filters":filters},
+                                     "app_scope_id": default_scope_id}
+                    elif network_group['id'] in fmc_hosts.keys():
+                        filters.append({"field":"ip","type":"eq","value":fmc_hosts[network_group['id']].value})
+                        post_data = {"name": fmc_hosts[network_group['id']].name,
+                                     "query": {"type":"or","filters":filters},
+                                     "app_scope_id": default_scope_id}
                     resp = restclient.post('/openapi/v1/filters/inventories',json_body=json.dumps(post_data)).json()
+                    if 'error' in resp.keys():
+                        print('ERROR: '+resp['error'])
+                        print('The Inventory Filter {} may already exist. Delete the filter and try again.'.format(post_data['name']))
+                        print('Refer to instructions in the lab guide or ask lab proctor.')
+                        raise SystemExit 
                     inventory_filters[network_group['id']] = resp['id']
                     source_filter = resp['id']
                 else:
@@ -99,29 +143,48 @@ def main():
             for network_group in rule_destination_networks:
                 if network_group['id'] not in inventory_filters.keys():
                     filters = []
-                    objects = fmc_groups[network_group['id']].objects
-                    for object in objects:
-                        filters.append({"field":"ip","type":"eq","value":fmc_hosts[object['id']].value})
-                    post_data = {"name": fmc_groups[network_group['id']].name,"query": {"type":"or","filters":filters},'app_scope_id': default_scope_id}
+                    if network_group['id'] in fmc_groups.keys():
+                        objects = fmc_groups[network_group['id']].objects
+                        literals = fmc_groups[network_group['id']].literals
+                        if objects:
+                            for object in objects:
+                                filters.append({"field":"ip","type":"eq","value":fmc_hosts[object['id']].value})
+                        if literals:
+                            for literal in literals:
+                                filters.append({"field":"ip","type":"eq","value":literal['value']})
+                        post_data = {"name": fmc_groups[network_group['id']].name,
+                                     "query": {"type":"or","filters":filters},
+                                     "app_scope_id": default_scope_id}
+                    elif network_group['id'] in fmc_hosts.keys():
+                        filters.append({"field":"ip","type":"eq","value":fmc_hosts[network_group['id']].value})
+                        post_data = {"name": fmc_hosts[network_group['id']].name,
+                                     "query": {"type":"or","filters":filters},
+                                     "app_scope_id": default_scope_id}
                     resp = restclient.post('/openapi/v1/filters/inventories',json_body=json.dumps(post_data)).json()
+                    if 'error' in resp.keys():
+                        print('ERROR: '+resp['error'])
+                        print('The Inventory Filter {} may already exist. Delete the filter and try again.'.format(post_data['name']))
+                        print('Refer to instructions in the lab guide or ask lab proctor.')
+                        raise SystemExit
+                    
                     inventory_filters[network_group['id']] = resp['id']
                     destination_filter = resp['id']
                 else:
                     destination_filter = inventory_filters[network_group['id']]
         else:
             destination_filter = filter_any
-        
+    
         if rule.action == 'ALLOW':
             action = 'ALLOW'
         else:
             action = 'DENY'
-        
+
+        protocol = 0
+        port_min = 0
+        port_max = 0
+    
         if 'objects' not in rule.destinationPorts.keys():
-            if 'literals' not in rule.destinationPorts.keys():
-                protocol = 0
-                port_min = 0
-                port_max = 0
-            else:
+            if 'literals' in rule.destinationPorts.keys():
                 for port_literal in rule.destinationPorts['literals']:
                     protocol = int(port_literal['protocol'])
                     if 'port' in port_literal.keys():
@@ -132,16 +195,29 @@ def main():
                         else:
                             port_min = int(ports[0])
                             port_max = int(ports[1])
-                       
+    
         absolute_policies.append({"consumer_filter_id": source_filter,
-                "provider_filter_id": destination_filter,
-                "l4_params": [{'port':[port_min,port_max],'proto':protocol}],
-                'action':action,
-                'priority':50})
+            "provider_filter_id": destination_filter,
+            "l4_params": [{'port':[port_min,port_max],'proto':protocol}],
+            'action':action,
+            'priority':50})
                               
-    print("Pushing FMC Access Rules to Tetration for Auditing and Simulation...")
-    import_json = json.dumps({"author": "Oxana Sannikova","primary": 'true',"app_scope_id":default_scope_id,"name":"NGFW Auditing","absolute_policies":absolute_policies,"catch_all_action":"DENY","vrf": {"id": 1,"name": "Default","tenant_id": 0,"tenant_name": "Default"}}, indent = 2)
+print("Pushing FMC Access Rules to Tetration for Auditing and Simulation...")
+if not args.f:
+    import_json = json.dumps({"author": "dCloud User","primary": 'false',"app_scope_id":default_scope_id,
+        "name":"ACME NGFW Auditing","absolute_policies":absolute_policies,
+        "catch_all_action":"DENY","vrf": {"id": 11,"name": scopeName,
+        "tenant_id": 0,"tenant_name": scopeName}}, indent = 2)
     resp = restclient.post('/openapi/v1/applications',json_body=import_json)
-                            
-if __name__ == '__main__':
-    main()
+    if  type(resp) is dict and 'error' in resp.keys():
+        print('ERROR: '+resp['error'])
+        print('The Workspace {} may already exist in Tetration. Delete the workspace and try again.'.format(post_data['name']))
+        print('Refer to instructions in the lab guide or ask lab proctor.')
+        raise SystemExit
+    elif type(resp) is requests.models.Response and  resp.status_code == 200:
+        print("Workspace created successfully")
+    elif  type(resp) is requests.models.Response:
+        print(resp.status_code)
+        raise SystemExit
+
+print("Rules successfully pushed to Tetration")
