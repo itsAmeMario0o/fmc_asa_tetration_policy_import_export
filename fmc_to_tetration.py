@@ -46,7 +46,7 @@ Main execution routine
 
 parser = argparse.ArgumentParser(description='FMC Config to Tetration')
 parser.add_argument('-f', default=False, help='Sets the flag to run the script in demonstration mode (default is full mode)')
-parser.add_argument('-s', default=None, help='Sets scope name where the filters and applications will be crated. (default None)')
+parser.add_argument('-s', default='', help='Sets scope name where the filters and applications will be crated. (default None)')
 
 
 args = parser.parse_args()
