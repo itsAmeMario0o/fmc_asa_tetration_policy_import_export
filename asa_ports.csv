@@ -1,0 +1,76 @@
+Name,Proto,Port,Description
+echo,"TCP, UDP",7,Echo
+discard,"TCP, UDP",9,Discard
+daytime,TCP,13,"Day time, RFC 867"
+chargen,TCP,19,Character Generator
+ftp-data,TCP,20,File Transfer Protocol (data port)
+ftp,TCP,21,File Transfer Protocol (control port)
+ssh,TCP,22,Secure Shell
+telnet,TCP,23,RFC 854 Telnet
+smtp,TCP,25,Simple Mail Transport Protocol
+time,UDP,37,Time
+nameserver,UDP,42,Host Name Server
+whois,TCP,43,Who Is
+tacacs,"TCP, UDP",49,Terminal Access Controller Access Control System Plus
+domain,"TCP, UDP",53,DNS
+bootps,UDP,67,Bootstrap Protocol Server
+bootpc,UDP,68,Bootstrap Protocol Client
+tftp,UDP,69,Trivial File Transfer Protocol
+gopher,TCP,70,Gopher
+finger,TCP,79,Finger
+http,"TCP, UDP",80,World Wide Web HTTP
+www,"TCP, UDP",80,World Wide Web
+hostname,TCP,101,NIC Host Name Server
+pop2,TCP,109,Post Office Protocol - Version 2
+pop3,TCP,110,Post Office Protocol - Version 3
+sunrpc,"TCP, UDP",111,Sun Remote Procedure Call
+ident,TCP,113,Ident authentication service
+nntp,TCP,119,Network News Transfer Protocol
+ntp,UDP,123,Network Time Protocol
+netbios-ns,UDP,137,NetBIOS Name Service
+netbios-dgm,UDP,138,NetBIOS Datagram Service
+netbios-ssn,TCP,139,NetBIOS Session Service
+imap4,TCP,143,"Internet Message Access Protocol, version 4"
+snmp,UDP,161,Simple Network Management Protocol
+snmptrap,UDP,162,Simple Network Management Protocol - Trap
+xdmcp,UDP,177,X Display Manager Control Protocol
+irc,TCP,194,Internet Relay Chat protocol
+dnsix,UDP,195,DNSIX Session Management Module Audit Redirector
+ldap,TCP,389,Lightweight Directory Access Protocol
+mobile-ip,UDP,434,Mobile IP-Agent
+https,TCP,443,HTTP over SSL
+pim-auto-rp,"TCP, UDP",496,"Protocol Independent Multicast, reverse path flooding, dense mode"
+isakmp,UDP,500,Internet Security Association and Key Management Protocol
+biff,UDP,512,Used by mail system to notify users that new mail is received
+exec,TCP,512,Remote process execution
+login,TCP,513,Remote login
+who,UDP,513,Who
+rsh,TCP,514,Remote Shell
+cmd,TCP,514,Similar to exec except that cmd has automatic authentication
+syslog,UDP,514,System Log
+lpd,TCP,515,Line Printer Daemon - printer spooler
+talk,"TCP, UDP",517,Talk
+rip,UDP,520,Routing Information Protocol
+uucp,TCP,540,UNIX-to-UNIX Copy Program
+klogin,TCP,543,KLOGIN
+kshell,TCP,544,Korn Shell
+rtsp,TCP,554,Real Time Streaming Protocol
+ldaps,TCP,636,Lightweight Directory Access Protocol (SSL)
+kerberos,"TCP, UDP",750,Kerberos
+lotusnotes,TCP,1352,IBM Lotus Notes
+citrix-ica,TCP,1494,Citrix Independent Computing Architecture (ICA) protocol
+sqlnet,TCP,1521,Structured Query Language Network
+radius,UDP,1645,Remote Authentication Dial-In User Service
+radius-acct,UDP,1646,Remote Authentication Dial-In User Service (accounting)
+h323,TCP,1720,H.323 call signaling
+pptp,TCP,1723,Point-to-Point Tunneling Protocol
+nfs,"TCP, UDP",2049,Network File System - Sun Microsystems
+ctiqbe,TCP,2748,Computer Telephony Interface Quick Buffer Encoding
+cifs,"TCP, UDP",3020,Common Internet File System
+vxlan,UDP,4789,Virtual eXtensible Local Area Network (VXLAN)
+sip,"TCP, UDP",5060,Session Initiation Protocol
+aol,TCP,5190,America Online
+secureid-udp,UDP,5510,SecureID over UDP
+pcanywhere-data,TCP,5631,pcAnywhere data
+pcanywhere-status,UDP,5632,pcAnywhere status
+bgp,TCP,179,"Border Gateway Protocol, RFC 1163"
