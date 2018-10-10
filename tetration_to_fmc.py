@@ -1,5 +1,24 @@
 #!/bin/env python3
 
+"""Standalone application to convert Tetration Policy to FMC Policy.
+NOTE: this is a Proof of Concept script, please test before using in production!
+
+Copyright (c) 2018 Cisco and/or its affiliates.
+
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.0 (the "License"). You may obtain a copy of the
+License at
+
+               https://developer.cisco.com/docs/licenses
+
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+"""
+
 import json
 import requests.packages.urllib3
 from pprint import pprint
@@ -10,6 +29,14 @@ from fmc_rest_client import ResourceException
 from fmc_rest_client.resources import *
 from tetpyclient import RestClient
 from TetPolicy2 import Environment, InventoryFilter, Cluster
+from __future__ import absolute_import, division, print_function
+
+__author__ = "Oxana Sannikova <osanniko@cisco.com>"
+__contributors__ = [
+    "Chris Mchenry <chmchenr@cisco.com>"
+]
+__copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
+__license__ = "Cisco Sample Code License, Version 1.0"
 
 class NetworkGroup(ObjectResource):
     def __init__(self, name=None, objects=None, literals=None, description=" "):
