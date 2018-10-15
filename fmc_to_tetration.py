@@ -1,7 +1,5 @@
 #!/bin/env python3
 
-#!/usr/bin/env python
-
 """Standalone application to convert FMC Policy to Tetration Policy.
 NOTE: this is a Proof of Concept script, please test before using in production!
 
