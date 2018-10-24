@@ -203,18 +203,27 @@ for policy in policies:
             rule.destinationNetworks = {'literals': nets}
     #Adding destination ports to the FMC rule
     rule.destinationPorts = {'objects': [],'literals': []}
-    for l4param in policy.l4params:
-        if policy.consumerFilterName != policy.providerFilterName:
-            if (l4param['proto'] == 6) or (l4param['proto'] == 17):
-                if l4param['port_min'] == l4param['port_max']: #If protocol is TCP or UDP
-                    rule.destinationPorts['literals'].append({'port': str(l4param['port_min']),
-                                                            'protocol': str(l4param['proto']),
-                                                            'type': 'PortLiteral'})
-                else:
-                    rule.destinationPorts['literals'].append({"port": str(l4param['port_min'])+'-'+str(l4param['port_max']),
-                                                                'protocol': str(l4param['proto']), 'type': 'PortLiteral'})
-            elif l4param['proto'] == 1: #If protocol is ICMP
-                rule.destinationPorts['literals'].append({"type": "ICMPv4PortLiteral","protocol": "1","icmpType": "Any"})
+    if len(policy.l4params) > 50:
+        index = len(policy.l4params) // 50
+        remainder = len(policy.l4params) % 50
+        for i in range(0,index):
+            destinationPorts = {'objects': [],'literals': []}
+            if policy.consumerFilterName != policy.providerFilterName:
+            #    if (policy.l4params[]['proto'] == 6) or (l4param['proto'] == 17):
+
+    else:
+        for l4param in policy.l4params:
+            if policy.consumerFilterName != policy.providerFilterName:
+                if (l4param['proto'] == 6) or (l4param['proto'] == 17):
+                    if l4param['port_min'] == l4param['port_max']: #If protocol is TCP or UDP
+                        rule.destinationPorts['literals'].append({'port': str(l4param['port_min']),
+                                                                'protocol': str(l4param['proto']),
+                                                                'type': 'PortLiteral'})
+                    else:
+                        rule.destinationPorts['literals'].append({"port": str(l4param['port_min'])+'-'+str(l4param['port_max']),
+                                                                    'protocol': str(l4param['proto']), 'type': 'PortLiteral'})
+                elif l4param['proto'] == 1: #If protocol is ICMP
+                    rule.destinationPorts['literals'].append({"type": "ICMPv4PortLiteral","protocol": "1","icmpType": "Any"})
     fmc_rules.append(rule)
 
 #Push rules to FMC

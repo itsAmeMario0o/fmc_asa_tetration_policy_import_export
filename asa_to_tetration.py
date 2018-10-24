@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/bin/env python3
 
 """Standalone application to convert ASA Policy to Tetratin Policy.
 NOTE: this is a Proof of Concept script, please test before using in production!
